@@ -84,6 +84,7 @@ $cart = $cartResult->fetch_assoc();
 
 $items = null;
 $cart_id = $cart["id"] ?? null;
+$order_success = false;
 
 if ($cart_id) {
 
@@ -116,8 +117,9 @@ if (isset($_POST["order"]) && $cart_id) {
         WHERE id=$cart_id
     ");
 
-    echo "<h2>Kiitos tilauksesta!</h2>";
-    exit;
+    $yhteys->query("DELETE FROM cart WHERE session='$session'");
+    
+    $order_success = true;
 }
 ?>
 
@@ -129,7 +131,7 @@ if (isset($_POST["order"]) && $cart_id) {
 <title>Ostoskori</title>
 <link rel="stylesheet" href="mystyle.css">
 </head>
-<body class="ostoskori">
+<body>
 
     <header class="top-bar">
         <a href="etusivu.php"><img src="logo.png" alt="Logo" class="logo"></a>
@@ -140,56 +142,67 @@ if (isset($_POST["order"]) && $cart_id) {
         <a href="ostoskori.php"><img src="karry.png" alt="Ostoskori" class="karry"></a>
     </header>
 
-    <h1>Ostoskori</h1>
+    <main class="ostoskori-main">
 
-    <?php if (!$items || $items->num_rows == 0): ?>
+    <?php if ($order_success): ?>
+        <div class="order-success">
+            <h1>Kiitos tilauksestasi!</h1>
+            <p>Hei <strong><?= htmlspecialchars($name) ?></strong>, toivottavasti asioit meillä vielä</p>
+            <button class="takauppa"><a href="kauppa.php">Jatka ostoksia</a></button>
+        </div>
 
-    <p>Ostoskori on tyhjä.</p>
-    <button class="takauppa"><a href="kauppa.php">Takaisin kauppaan</a></button>
+    <?php elseif (!$items || $items->num_rows == 0): ?>
+
+        <h1>Ostoskori</h1>
+        <p>Ostoskori on tyhjä.</p>
+        <button class="takauppa"><a href="kauppa.php">Takaisin kauppaan</a></button>
 
     <?php else: ?>
-    
-    <button class="takauppa"><a href="kauppa.php">Jatka ostoksia</a></button>
-    <table border="1" cellpadding="8">
-    <tr>
-        <th>Tuote</th>
-        <th>Määrä</th>
-        <th>Hinta</th>
-        <th></th>
-    </tr>
 
-    <?php
-    $total = 0;
+        <h1>Ostoskori</h1>
+        <button class="takauppa"><a href="kauppa.php">Jatka ostoksia</a></button>
 
-    while ($i = $items->fetch_assoc()):
-        $sum = $i["amount"] * $i["prize"];
-        $total += $sum;
-    ?>
+        <table border="1" cellpadding="8">
+        <tr>
+            <th>Tuote</th>
+            <th>Määrä</th>
+            <th>Hinta</th>
+            <th></th>
+        </tr>
 
-    <tr>
-        <td><?= htmlspecialchars($i["name"]) ?></td>
-        <td><?= $i["amount"] ?></td>
-        <td><?= number_format($sum, 2) ?> €</td>
-        <td><a class="add" href="ostoskori.php?remove=<?= $i["product_id"] ?>">Posita</a></td>
-    </tr>
+        <?php
+        $total = 0;
 
-    <?php endwhile; ?>
+        while ($i = $items->fetch_assoc()):
+            $sum = $i["amount"] * $i["prize"];
+            $total += $sum;
+        ?>
 
-    </table>
+        <tr>
+            <td><?= htmlspecialchars($i["name"]) ?></td>
+            <td><?= $i["amount"] ?></td>
+            <td><?= number_format($sum, 2) ?> €</td>
+            <td><a class="add" href="ostoskori.php?remove=<?= $i["product_id"] ?>">Posita</a></td>
+        </tr>
 
-    <h3>Yhteensä: <?= number_format($total, 2) ?> €</h3>
+        <?php endwhile; ?>
 
-    <h2>Tee tilaus</h2>
+        </table>
 
-    <form method="post">
-    <input type="text" name="name" placeholder="Nimi" required><br>
-    <input type="email" name="email" placeholder="Sähköposti" required><br>
-    <input type="text" name="phone" placeholder="Puhelin" required><br>
+        <h3>Yhteensä: <?= number_format($total, 2) ?> €</h3>
 
-    <button class="takauppa" type="submit" name="order">Tee tilaus</button>
-    </form>
+        <h2>Tee tilaus</h2>
+
+        <form method="post">
+        <input type="text" name="name" placeholder="Nimi" required><br>
+        <input type="email" name="email" placeholder="Sähköposti" required><br>
+        <input type="text" name="phone" placeholder="Puhelin" required><br>
+
+        <button class="takauppa" type="submit" name="order">Tee tilaus</button>
+        </form>
 
     <?php endif; ?>
 
+    </main>
 </body>
 </html>
