@@ -129,7 +129,7 @@ if (isset($_POST["order"]) && $cart_id) {
 <title>Ostoskori</title>
 <link rel="stylesheet" href="mystyle.css">
 </head>
-<body>
+<body class="ostoskori">
 
     <header class="top-bar">
         <a href="etusivu.php"><img src="logo.png" alt="Logo" class="logo"></a>
@@ -145,16 +145,17 @@ if (isset($_POST["order"]) && $cart_id) {
     <?php if (!$items || $items->num_rows == 0): ?>
 
     <p>Ostoskori on tyhjä.</p>
-    <a href="kauppa.php">Takaisin kauppaan</a>
+    <button class="takauppa"><a href="kauppa.php">Takaisin kauppaan</a></button>
 
     <?php else: ?>
-
+    
+    <button class="takauppa"><a href="kauppa.php">Jatka ostoksia</a></button>
     <table border="1" cellpadding="8">
     <tr>
         <th>Tuote</th>
         <th>Määrä</th>
         <th>Hinta</th>
-        <th>Poista</th>
+        <th></th>
     </tr>
 
     <?php
@@ -169,9 +170,7 @@ if (isset($_POST["order"]) && $cart_id) {
         <td><?= htmlspecialchars($i["name"]) ?></td>
         <td><?= $i["amount"] ?></td>
         <td><?= number_format($sum, 2) ?> €</td>
-        <td>
-            <a class="add" href="ostoskori.php?remove=<?= $i["product_id"] ?>">Posita</a>
-        </td>
+        <td><a class="add" href="ostoskori.php?remove=<?= $i["product_id"] ?>">Posita</a></td>
     </tr>
 
     <?php endwhile; ?>
@@ -187,7 +186,7 @@ if (isset($_POST["order"]) && $cart_id) {
     <input type="email" name="email" placeholder="Sähköposti" required><br>
     <input type="text" name="phone" placeholder="Puhelin" required><br>
 
-    <button type="submit" name="order">Tee tilaus</button>
+    <button class="takauppa" type="submit" name="order">Tee tilaus</button>
     </form>
 
     <?php endif; ?>

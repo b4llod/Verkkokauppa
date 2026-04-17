@@ -248,6 +248,22 @@ main {
     min-height: calc(100vh - 200px);
 }
 
+button{
+  padding:8px 16px;
+  border:none;
+  border-radius:8px;
+  background:#ff2d95;
+  color:white;
+  font-weight:600;
+  cursor:pointer;
+  transition:0.15s;
+}
+
+button:hover{
+  background:#ff0000;
+  transform:scale(1.05);
+}
+
 /* ========================= */
 /* OSTOSKORI */
 /* ========================= */
@@ -309,7 +325,8 @@ form input:focus {
   box-shadow: 0 0 5px rgba(255,45,149,0.3);
 }
 
-form button {
+.takauppa {
+  margin-top: 20px;
   padding: 10px 15px;
   border: none;
   border-radius: 8px;
@@ -320,7 +337,12 @@ form button {
   transition: 0.15s;
 }
 
-form button:hover {
+.takauppa:hover {
   background: #ff0000;
   transform: scale(1.05);
+}
+
+.takauppa a {
+  color: white;
+  text-decoration: none;
 }
