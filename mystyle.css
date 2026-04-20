@@ -117,15 +117,20 @@ footer {
   background-repeat: no-repeat;
   text-align: center;
   padding: 100px 20px;
+  border-radius: 0;
+  clip-path: ellipse(100% 100% at 50% 0%);
 }
 
 .kuva-teks h1 {
   font-size: 36px;
   color: white;
+  padding: 10px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .kuva-teks p {
   color: white;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .shop-btn {
@@ -169,6 +174,16 @@ a:active {
 
 .step h3 {
   margin-bottom: 5px;
+}
+
+.step svg{
+  display: block;
+  margin: 0 auto 10px auto;
+  width: 32px;
+  height: 32px;
+  background-color: #ff2d95;
+  padding: 5px;
+  border-radius: 7px;
 }
 
 .filters input[type="text"]{
