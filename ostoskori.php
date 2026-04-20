@@ -141,7 +141,7 @@ if (isset($_POST["order"]) && $cart_id) {
         </nav>
         <a href="ostoskori.php"><img src="karry.png" alt="Ostoskori" class="karry"></a>
     </header>
-
+    
     <main class="ostoskori-main">
 
     <?php if ($order_success): ?>
