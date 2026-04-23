@@ -4,8 +4,7 @@ require_once "yhteys.php";
 
 $session = session_id();
 
-/* Tuotteen lisäys ostsokoriin */
-
+/* Tuotteen lisäys ostoskoriin */
 if (isset($_GET["add"])) {
 
     $product_id = intval($_GET["add"]);
@@ -14,39 +13,18 @@ if (isset($_GET["add"])) {
     $cart = $cartResult->fetch_assoc();
 
     if (!$cart) {
-
-        $yhteys->query("
-            INSERT INTO cart (session, order_id)
-            VALUES ('$session', 0)
-        ");
-
+        $yhteys->query("INSERT INTO cart (session, order_id) VALUES ('$session', 0)");
         $cart_id = $yhteys->insert_id;
-
     } else {
         $cart_id = $cart["id"];
     }
 
-    $check = $yhteys->query("
-        SELECT * FROM cart_item 
-        WHERE cart_id=$cart_id 
-        AND product_id=$product_id
-    ");
+    $check = $yhteys->query("SELECT * FROM cart_item WHERE cart_id=$cart_id AND product_id=$product_id");
 
     if ($check->num_rows > 0) {
-
-        $yhteys->query("
-            UPDATE cart_item 
-            SET amount = amount + 1
-            WHERE cart_id=$cart_id 
-            AND product_id=$product_id
-        ");
-
+        $yhteys->query("UPDATE cart_item SET amount = amount + 1 WHERE cart_id=$cart_id AND product_id=$product_id");
     } else {
-
-        $yhteys->query("
-            INSERT INTO cart_item (cart_id, product_id, amount)
-            VALUES ($cart_id, $product_id, 1)
-        ");
+        $yhteys->query("INSERT INTO cart_item (cart_id, product_id, amount) VALUES ($cart_id, $product_id, 1)");
     }
 
     header("Location: ostoskori.php");
@@ -54,7 +32,6 @@ if (isset($_GET["add"])) {
 }
 
 /* Tuotteen poisto ostoskorista */
-
 if (isset($_GET["remove"])) {
 
     $product_id = intval($_GET["remove"]);
@@ -63,14 +40,42 @@ if (isset($_GET["remove"])) {
     $cart = $cartResult->fetch_assoc();
 
     if ($cart) {
+        $cart_id = $cart["id"];
+        $yhteys->query("DELETE FROM cart_item WHERE cart_id=$cart_id AND product_id=$product_id");
+    }
 
+    header("Location: ostoskori.php");
+    exit;
+}
+
+/* Määrän muutos */
+if (isset($_GET["qty"]) && isset($_GET["pid"])) {
+
+    $product_id = intval($_GET["pid"]);
+    $change = intval($_GET["qty"]);
+
+    $cartResult = $yhteys->query("SELECT * FROM cart WHERE session='$session'");
+    $cart = $cartResult->fetch_assoc();
+
+    if ($cart) {
         $cart_id = $cart["id"];
 
-        $yhteys->query("
-            DELETE FROM cart_item 
-            WHERE cart_id=$cart_id 
-            AND product_id=$product_id
-        ");
+        $row = $yhteys->query("
+            SELECT cart_item.amount, products.stock 
+            FROM cart_item 
+            JOIN products ON cart_item.product_id = products.id
+            WHERE cart_item.cart_id=$cart_id AND cart_item.product_id=$product_id
+        ")->fetch_assoc();
+
+        if ($row) {
+            $new_amount = $row["amount"] + $change;
+
+            if ($new_amount < 1) {
+                $yhteys->query("DELETE FROM cart_item WHERE cart_id=$cart_id AND product_id=$product_id");
+            } elseif ($new_amount <= $row["stock"]) {
+                $yhteys->query("UPDATE cart_item SET amount=$new_amount WHERE cart_id=$cart_id AND product_id=$product_id");
+            }
+        }
     }
 
     header("Location: ostoskori.php");
@@ -78,7 +83,6 @@ if (isset($_GET["remove"])) {
 }
 
 /* Ostoskorin haku */
-
 $cartResult = $yhteys->query("SELECT * FROM cart WHERE session='$session'");
 $cart = $cartResult->fetch_assoc();
 
@@ -87,9 +91,8 @@ $cart_id = $cart["id"] ?? null;
 $order_success = false;
 
 if ($cart_id) {
-
     $items = $yhteys->query("
-        SELECT cart_item.*, products.name, products.prize, products.unit
+        SELECT cart_item.*, products.name, products.prize, products.unit, products.stock
         FROM cart_item
         JOIN products ON cart_item.product_id = products.id
         WHERE cart_item.cart_id=$cart_id
@@ -97,26 +100,17 @@ if ($cart_id) {
 }
 
 /* Tilauksen tallennus */
-
 if (isset($_POST["order"]) && $cart_id) {
 
     $name  = $yhteys->real_escape_string($_POST["name"]);
     $email = $yhteys->real_escape_string($_POST["email"]);
     $phone = $yhteys->real_escape_string($_POST["phone"]);
 
-    $yhteys->query("
-        INSERT INTO orders (session, name, email, phone, datetime)
-        VALUES ('$session', '$name', '$email', '$phone', NOW())
-    ");
+    $yhteys->query("INSERT INTO orders (session, name, email, phone, datetime) VALUES ('$session', '$name', '$email', '$phone', NOW())");
 
     $order_id = $yhteys->insert_id;
 
-    $yhteys->query("
-        UPDATE cart 
-        SET order_id=$order_id 
-        WHERE id=$cart_id
-    ");
-
+    $yhteys->query("UPDATE cart SET order_id=$order_id WHERE id=$cart_id");
     $yhteys->query("DELETE FROM cart WHERE session='$session'");
     
     $order_success = true;
@@ -136,7 +130,6 @@ if (isset($_POST["order"]) && $cart_id) {
 
     <header class="top-bar">
         <a href="etusivu.php"><img src="logo.png" alt="Logo" class="logo"></a>
-
         <nav class="nav-links">
             <a href="kauppa.php">Kauppa</a>
         </nav>
@@ -148,59 +141,57 @@ if (isset($_POST["order"]) && $cart_id) {
     <?php if ($order_success): ?>
         <div class="order-success">
             <h1>Kiitos tilauksestasi!</h1>
-            <p>Hei <strong><?= htmlspecialchars($name) ?></strong>, toivottavasti asioit meillä vielä</p>
+            <p>Hei <strong><?= htmlspecialchars($name) ?></strong>, toivottavasti asioit meillä vielä!</p>
             <button class="takauppa"><a href="kauppa.php">Jatka ostoksia</a></button>
         </div>
 
     <?php elseif (!$items || $items->num_rows == 0): ?>
-
         <h1>Ostoskori</h1>
         <p>Ostoskori on tyhjä.</p>
         <button class="takauppa"><a href="kauppa.php">Takaisin kauppaan</a></button>
 
     <?php else: ?>
 
-        <h1>Ostoskori</h1>
-        <button class="takauppa"><a href="kauppa.php">Jatka ostoksia</a></button>
+        <div class="ostoskori-row">
+            <div class="korin-info">
+        
+                <h1>Ostoskori</h1>
 
-        <table border="1" cellpadding="8">
-        <tr>
-            <th>Tuote</th>
-            <th>Määrä</th>
-            <th>Hinta</th>
-            <th></th>
-        </tr>
+                <div class="cart-items">
+                <?php
+                $total = 0;
+                while ($i = $items->fetch_assoc()):
+                    $sum = $i["amount"] * $i["prize"];
+                    $total += $sum;
+                ?>
+                <div class="cart-item">
+                    <a class="add" href="ostoskori.php?remove=<?= $i["product_id"] ?>">Poista</a>
+                    <span class="item-name"><?= htmlspecialchars($i["name"]) ?></span>
+                    <a href="ostoskori.php?qty=-1&pid=<?= $i["product_id"] ?>" class="qty-btn">−</a>
+                    <span class="item-amount"><?= $i["amount"] ?></span>
+                    <a href="ostoskori.php?qty=+1&pid=<?= $i["product_id"] ?>" class="qty-btn">+</a>
+                    <span class="item-price"><?= number_format($sum, 2) ?> €</span>
+                </div>
+                <?php endwhile; ?>
+                </div>
 
-        <?php
-        $total = 0;
+                <div class="cart-footer">
+                    <a class="takauppa" href="kauppa.php">&laquo; Takaisin kauppaan</a>
+                    <span>Yhteensä <strong><?= number_format($total, 2) ?> €</strong></span>
+                </div>
 
-        while ($i = $items->fetch_assoc()):
-            $sum = $i["amount"] * $i["prize"];
-            $total += $sum;
-        ?>
+            </div>
 
-        <tr>
-            <td><?= htmlspecialchars($i["name"]) ?></td>
-            <td><?= $i["amount"] ?></td>
-            <td><?= number_format($sum, 2) ?> €</td>
-            <td><a class="add" href="ostoskori.php?remove=<?= $i["product_id"] ?>">Posita</a></td>
-        </tr>
-
-        <?php endwhile; ?>
-
-        </table>
-
-        <h3>Yhteensä: <?= number_format($total, 2) ?> €</h3>
-
-        <h2>Tee tilaus</h2>
-
-        <form method="post">
-        <input type="text" name="name" placeholder="Nimi" required><br>
-        <input type="email" name="email" placeholder="Sähköposti" required><br>
-        <input type="text" name="phone" placeholder="Puhelin" required><br>
-
-        <button class="takauppa" type="submit" name="order">Tee tilaus</button>
-        </form>
+            <div class="tilaus-info">
+                <h2>Tee tilaus</h2>
+                <form method="post">
+                    <input type="text" name="name" placeholder="Nimi" required><br>
+                    <input type="email" name="email" placeholder="Sähköposti" required><br>
+                    <input type="text" name="phone" placeholder="Puhelin" required><br>
+                    <button class="takauppa" type="submit" name="order">Tee tilaus</button>
+                </form>
+            </div>
+        </div>
 
     <?php endif; ?>
 

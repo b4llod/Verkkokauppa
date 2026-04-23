@@ -325,6 +325,71 @@ h3 {
   padding: 20px;
 }
 
+
+.cart-items {
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  overflow: hidden;
+  margin: 20px 0;
+}
+
+.cart-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.cart-item:last-child {
+  border-bottom: none;
+}
+
+.remove-btn {
+  font-size: 18px;
+  text-decoration: none;
+  color: #aaa;
+  transition: 0.15s;
+}
+
+.remove-btn:hover {
+  color: #ff0000;
+}
+
+.item-name {
+  flex: 1;
+  font-weight: 600;
+}
+
+.item-amount {
+  background: #f4f4f4;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 4px 12px;
+  min-width: 40px;
+  text-align: center;
+}
+
+.item-price {
+  font-weight: 700;
+  min-width: 60px;
+  text-align: right;
+}
+
+.cart-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  padding: 0 4px;
+}
+
+.cart-footer strong {
+  font-size: 20px;
+}
+
+
+
 /* ========================= */
 /* TILAUSLOMAKE */
 /* ========================= */
@@ -360,6 +425,7 @@ form input:focus {
   font-weight: bold;
   cursor: pointer;
   transition: 0.15s;
+  text-decoration: none;
 }
 
 .takauppa:hover {
@@ -370,4 +436,50 @@ form input:focus {
 .takauppa a {
   color: white;
   text-decoration: none;
+}
+
+.korin-info {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 25px;
+  flex: 1;
+  max-width: 600px;
+}
+
+.tilaus-info {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 25px;
+  width: 320px;
+  flex-shrink: 0;
+}
+
+.ostoskori-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 30px;
+  padding: 40px 20px;
+  min-height: calc(100vh - 20px);
+}
+
+.qty-btn {
+  display: inline-block;
+  padding: 2px 8px;
+  background: #f4f4f4;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  text-decoration: none;
+  color: #333;
+  font-weight: bold;
+  transition: 0.15s;
+}
+
+.qty-btn:hover {
+  background: #ff2d95;
+  color: white;
+  border-color: #ff2d95;
 }
