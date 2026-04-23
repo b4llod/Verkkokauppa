@@ -4,7 +4,7 @@ body {
 }
 
 .top-bar {
-  height: 70px;
+  height: 90px;
   width: 100%;
   background: linear-gradient(to right, #ff0000, #ff2d95);
   display: flex;
@@ -104,9 +104,10 @@ body {
 
 footer {
   margin-top: auto;
-  padding: 60px 20px;  /* Isompi padding */
+  padding: 60px 20px;
   text-align: center;
-  background: #eee;
+  background: #ff2d95;
+  color: white;
   width: 100%;
 }
 
