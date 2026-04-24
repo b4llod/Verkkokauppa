@@ -133,7 +133,6 @@ if (isset($_POST["order"]) && $cart_id) {
         <nav class="nav-links">
             <a href="kauppa.php">Kauppa</a>
         </nav>
-        <a href="ostoskori.php"><img src="karry.png" alt="Ostoskori" class="karry"></a>
     </header>
     
     <main class="ostoskori-main">
