@@ -1,18 +1,22 @@
 <?php
+// Yhdistetään tietokantaan
 include "yhteys.php";
 
 $ilmoitus = "";
 
+// Käsitellään rekisteröintilomake vain kun se on lähetetty
 if (isset($_POST["rekisteroidy"])) {
 
-    $sposti = trim($_POST['e_mail']);
+    // Luetaan ja siivotaan syötteet
+    $sposti  = trim($_POST['e_mail']);
     $ktunnus = trim($_POST['user_name']);
     $salasana = trim($_POST['password']);
 
     if (empty($ktunnus)) {
         $ilmoitus = "Käyttäjätunnus ei voi olla tyhjä";
-    }
-    else {
+    } else {
+
+        // Tarkistetaan onko käyttäjätunnus jo olemassa
         $haku = $yhteys->prepare("SELECT user_id FROM users WHERE user_name = ?");
         $haku->bind_param("s", $ktunnus);
         $haku->execute();
@@ -20,8 +24,8 @@ if (isset($_POST["rekisteroidy"])) {
 
         if ($haku->num_rows > 0) {
             $ilmoitus = "Käyttäjätunnus on jo käytössä!";
-        }
-        else {
+        } else {
+            // Hashataan salasana ja tallennetaan uusi käyttäjä tietokantaan
             $hashedPassword = password_hash($salasana, PASSWORD_DEFAULT);
 
             $haku = $yhteys->prepare("INSERT INTO users (e_mail, user_name, password, role) VALUES (?, ?, ?, 'user')");
@@ -29,16 +33,15 @@ if (isset($_POST["rekisteroidy"])) {
 
             if ($haku->execute()) {
                 $ilmoitus = "Rekisteröinti onnistui!";
-            }
-            else {
+            } else {
                 $ilmoitus = "Virhe rekisteröinnissä";
             }
         }
+
         $haku->close();
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="fi">
 <head>
@@ -50,18 +53,20 @@ if (isset($_POST["rekisteroidy"])) {
 </head>
 <body>
 
+    <!-- Yläpalkki: logo ja linkki kirjautumiseen -->
     <header class="top-bar">
         <img src="logo.png" alt="Logo" class="logo">
-
         <nav class="nav-links">
             <a href="login.php">Kirjaudu sisään</a>
         </nav>
     </header>
 
     <main>
+        <!-- Rekisteröintilomake ilmoituksineen -->
         <section class="form-section">
             <h2>Rekisteröidy</h2>
 
+            <!-- Näytetään palaute rekisteröinnin onnistumisesta tai virheestä -->
             <?php if ($ilmoitus != ""): ?>
                 <p style="color:black; font-weight:600;">
                     <?= htmlspecialchars($ilmoitus) ?>
@@ -77,10 +82,8 @@ if (isset($_POST["rekisteroidy"])) {
         </section>
     </main>
 
+    <!-- Alatunniste: vuosi generoidaan automaattisesti -->
     <footer>© <?= date("Y") ?> Niklas Jurvelin – Omnia</footer>
 
 </body>
 </html>
-
-
-

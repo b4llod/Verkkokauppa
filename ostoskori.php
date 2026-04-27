@@ -1,4 +1,5 @@
 <?php
+// Käynnistetään istunto, yhdistetään tietokantaan ja tallennetaan istuntotunniste
 session_start();
 require_once "yhteys.php";
 
@@ -9,16 +10,19 @@ if (isset($_GET["add"])) {
 
     $product_id = intval($_GET["add"]);
 
+    // Tarkistetaan onko käyttäjällä jo ostoskori
     $cartResult = $yhteys->query("SELECT * FROM cart WHERE session='$session'");
     $cart = $cartResult->fetch_assoc();
 
     if (!$cart) {
+        // Luodaan uusi ostoskori tälle istunnolle
         $yhteys->query("INSERT INTO cart (session, order_id) VALUES ('$session', 0)");
         $cart_id = $yhteys->insert_id;
     } else {
         $cart_id = $cart["id"];
     }
 
+    // Jos tuote on jo korissa, kasvatetaan määrää muuten lisätään uutena rivinä
     $check = $yhteys->query("SELECT * FROM cart_item WHERE cart_id=$cart_id AND product_id=$product_id");
 
     if ($check->num_rows > 0) {
@@ -48,7 +52,7 @@ if (isset($_GET["remove"])) {
     exit;
 }
 
-/* Määrän muutos */
+/* Tuotteen määrän muutos (+1 tai -1) */
 if (isset($_GET["qty"]) && isset($_GET["pid"])) {
 
     $product_id = intval($_GET["pid"]);
@@ -60,6 +64,7 @@ if (isset($_GET["qty"]) && isset($_GET["pid"])) {
     if ($cart) {
         $cart_id = $cart["id"];
 
+        // Haetaan nykyinen määrä ja varastosaldo rajoitusta varten
         $row = $yhteys->query("
             SELECT cart_item.amount, products.stock 
             FROM cart_item 
@@ -71,8 +76,10 @@ if (isset($_GET["qty"]) && isset($_GET["pid"])) {
             $new_amount = $row["amount"] + $change;
 
             if ($new_amount < 1) {
+                // Määrä laskisi nollaan ja poistetaan tuote korista
                 $yhteys->query("DELETE FROM cart_item WHERE cart_id=$cart_id AND product_id=$product_id");
             } elseif ($new_amount <= $row["stock"]) {
+                // Päivitetään määrä vain jos varasto riittää
                 $yhteys->query("UPDATE cart_item SET amount=$new_amount WHERE cart_id=$cart_id AND product_id=$product_id");
             }
         }
@@ -82,7 +89,7 @@ if (isset($_GET["qty"]) && isset($_GET["pid"])) {
     exit;
 }
 
-/* Ostoskorin haku */
+/* Haetaan käyttäjän nykyinen ostoskori sivunäkymää varten */
 $cartResult = $yhteys->query("SELECT * FROM cart WHERE session='$session'");
 $cart = $cartResult->fetch_assoc();
 
@@ -91,6 +98,7 @@ $cart_id = $cart["id"] ?? null;
 $order_success = false;
 
 if ($cart_id) {
+    // Haetaan korin tuotteet nimineen, hintoineen ja varastosaldoineen
     $items = $yhteys->query("
         SELECT cart_item.*, products.name, products.prize, products.unit, products.stock
         FROM cart_item
@@ -99,20 +107,23 @@ if ($cart_id) {
     ");
 }
 
-/* Tilauksen tallennus */
+/* Tilauksen tallennus tietokantaan */
 if (isset($_POST["order"]) && $cart_id) {
 
+    // käyttäjän syötteet
     $name  = $yhteys->real_escape_string($_POST["name"]);
     $email = $yhteys->real_escape_string($_POST["email"]);
     $phone = $yhteys->real_escape_string($_POST["phone"]);
 
+    // Luodaan tilaus ja liitetään se ostoskoriin
     $yhteys->query("INSERT INTO orders (session, name, email, phone, datetime) VALUES ('$session', '$name', '$email', '$phone', NOW())");
-
     $order_id = $yhteys->insert_id;
 
     $yhteys->query("UPDATE cart SET order_id=$order_id WHERE id=$cart_id");
+
+    // Poistetaan ostoskori istunnolta tilauksen jälkeen
     $yhteys->query("DELETE FROM cart WHERE session='$session'");
-    
+
     $order_success = true;
 }
 ?>
@@ -128,16 +139,18 @@ if (isset($_POST["order"]) && $cart_id) {
 </head>
 <body>
 
+    <!-- Yläpalkki: logo ja linkki kauppaan -->
     <header class="top-bar">
         <a href="etusivu.php"><img src="logo.png" alt="Logo" class="logo"></a>
         <nav class="nav-links">
             <a href="kauppa.php">Kauppa</a>
         </nav>
     </header>
-    
+
     <main class="ostoskori-main">
 
     <?php if ($order_success): ?>
+        <!-- Tilauksen vahvistusviesti -->
         <div class="order-success">
             <h1>Kiitos tilauksestasi!</h1>
             <p>Hei <strong><?= htmlspecialchars($name) ?></strong>, toivottavasti asioit meillä vielä!</p>
@@ -145,6 +158,7 @@ if (isset($_POST["order"]) && $cart_id) {
         </div>
 
     <?php elseif (!$items || $items->num_rows == 0): ?>
+        <!-- Tyhjä ostoskori -->
         <h1>Ostoskori</h1>
         <p>Ostoskori on tyhjä.</p>
         <button class="takauppa"><a href="kauppa.php">Takaisin kauppaan</a></button>
@@ -152,8 +166,9 @@ if (isset($_POST["order"]) && $cart_id) {
     <?php else: ?>
 
         <div class="ostoskori-row">
+
+            <!-- Vasemman puolen tuotelista yheteen lasketuilla summilla -->
             <div class="korin-info">
-        
                 <h1>Ostoskori</h1>
 
                 <div class="cart-items">
@@ -178,9 +193,9 @@ if (isset($_POST["order"]) && $cart_id) {
                     <a class="takauppa" href="kauppa.php">&laquo; Takaisin kauppaan</a>
                     <span>Yhteensä <strong><?= number_format($total, 2) ?> €</strong></span>
                 </div>
-
             </div>
 
+            <!-- Oikean puolen tilaustiedot ja lähetyspainike -->
             <div class="tilaus-info">
                 <h2>Tee tilaus</h2>
                 <form method="post">
@@ -190,6 +205,7 @@ if (isset($_POST["order"]) && $cart_id) {
                     <button class="takauppa" type="submit" name="order">Tee tilaus</button>
                 </form>
             </div>
+
         </div>
 
     <?php endif; ?>

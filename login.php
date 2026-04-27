@@ -1,16 +1,16 @@
 <?php
+// Käynnistetään istunto ja yhdistetään tietokantaan
 session_start();
 include "yhteys.php";
 
 $ilmoitus = "";
 
-// Lomakkeen käsittely
+// Käsitellään kirjautumislomake vain kun se on lähetetty
 if (isset($_POST["kirjaudu"])) {
-
     $ktunnus = $_POST["user_name"];
     $salasana = $_POST["password"];
 
-    // Haetaan käyttäjät tietokannasta
+    // Haetaan käyttäjä käyttäjätunnuksen perusteella
     $sql = "SELECT * FROM users WHERE user_name = ?";
     $stmt = $yhteys->prepare($sql);
     $stmt->bind_param("s", $ktunnus);
@@ -20,25 +20,20 @@ if (isset($_POST["kirjaudu"])) {
     if ($tulos->num_rows == 1) {
         $kayttaja = $tulos->fetch_assoc();
 
-        // Tarkistetaan salasana hash:in avulla
+        // Tarkistetaan salasana hajautusfunktiota vasten
         if (password_verify($salasana, $kayttaja["password"])) {
             $_SESSION["role"] = $kayttaja["role"];
             $_SESSION["user_id"] = $kayttaja["user_id"];
-
-            // Uudelleen ohjataan etusivulle
             header("Location: etusivu.php");
             exit;
-        }
-        else {
+        } else {
             $ilmoitus = "Väärä salasana";
         }
-    } 
-    else {
+    } else {
         $ilmoitus = "Käyttäjätunnusta ei löydy";
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="fi">
 <head>
@@ -50,18 +45,20 @@ if (isset($_POST["kirjaudu"])) {
 </head>
 <body>
 
+    <!-- Yläpalkki: logo ja linkki rekisteröitymiseen -->
     <header class="top-bar">
         <img src="logo.png" alt="Logo" class="logo">
-
         <nav class="nav-links">
             <a href="rekisteri.php">Rekisteröidy</a>
         </nav>
     </header>
 
     <main>
+        <!-- Kirjautumislomake virheilmoituksineen -->
         <section class="form-section">
             <h2>Kirjaudu sisään</h2>
 
+            <!-- Näytetään virheviesti jos kirjautuminen epäonnistui -->
             <?php if ($ilmoitus != ""): ?>
                 <p style="color:white; font-weight:600;">
                     <?= htmlspecialchars($ilmoitus) ?>
@@ -77,6 +74,7 @@ if (isset($_POST["kirjaudu"])) {
         </section>
     </main>
 
+    <!-- Alatunniste: vuosi generoidaan automaattisesti -->
     <footer>© <?= date("Y") ?> Niklas Jurvelin – Omnia</footer>
 
 </body>
