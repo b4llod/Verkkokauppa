@@ -1,13 +1,13 @@
 <?php
+// Käynnistetään istunto ja yhdistetään tietokantaan
+session_start();
+require_once "yhteys.php";
+
 if (!isset($_SESSION['role'])) {
     // Ei kirjautunut – ohjataan rekisteröitymissivulle
     header("Location: rekisteri.php");
     exit();
 }
-
-// Käynnistetään istunto ja yhdistetään tietokantaan
-session_start();
-require_once "yhteys.php";
 
 // Haetaan kaikki kategoriat suodatinvalikkoa varten
 $categories = $yhteys->query("SELECT * FROM categories");

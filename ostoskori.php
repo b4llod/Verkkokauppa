@@ -1,7 +1,13 @@
 <?php
-// Käynnistetään istunto, yhdistetään tietokantaan ja tallennetaan istuntotunniste
+// Käynnistetään istunto ja yhdistetään tietokantaan
 session_start();
 require_once "yhteys.php";
+
+if (!isset($_SESSION['role'])) {
+    // Ei kirjautunut – ohjataan rekisteröitymissivulle
+    header("Location: rekisteri.php");
+    exit();
+}
 
 $session = session_id();
 
