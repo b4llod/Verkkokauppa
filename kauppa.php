@@ -12,9 +12,9 @@ if (!isset($_SESSION['role'])) {
 // Haetaan kaikki kategoriat suodatinvalikkoa varten
 $categories = $yhteys->query("SELECT * FROM categories");
 
-// Luetaan hakuparametrit GET-pyynnöstä
-$search = $_GET["search"] ?? "";
-$selectedCats = $_GET["cat"] ?? [];
+// Luetaan hakuparametrit POST-pyynnöstä
+$search = $_POST["search"] ?? "";
+$selectedCats = $_POST["cat"] ?? [];
 
 // Rakennetaan tuotekysely JOIN:illa kategorianimen hakemiseksi
 $sql = "SELECT products.*, categories.name AS category
